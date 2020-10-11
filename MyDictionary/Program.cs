@@ -30,6 +30,10 @@ namespace MyDictionary
             myDictonary2.Add(4, "for");
             myDictonary2.Remove(4);
             Console.WriteLine(myDictonary2.ContainsKey(4));
+            //foreach (var item in myDictonary2)
+            //{
+            //    Console.WriteLine(item+" ");
+            //}
             Console.ReadKey();
         }
     }
