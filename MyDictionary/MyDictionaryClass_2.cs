@@ -46,8 +46,15 @@ namespace MyDictionary
         public void Add(T key, V value)
         {
             int index = key.GetHashCode() % capacity;
-            keys[index] = key.GetHashCode() % capacity;
-            values.Add(new Entry() {hashCode = key.GetHashCode() % capacity, key = key,next = keys[index], value = value });
+            if (keys[index] == -1)
+            {
+                keys[index] = key.GetHashCode() % capacity;
+                values.Add(new Entry() { hashCode = key.GetHashCode() & 0x7fffffff % capacity, key = key, next = -1, value = value });
+            }
+            else
+            {
+                values.Add(new Entry() { hashCode = key.GetHashCode() & 0x7fffffff % capacity, key = key, next = keys[index], value = value });
+            }
         }
 
         public void Add(KeyValuePair<T, V> item) => this.Add(item.Key, item.Value);
@@ -66,17 +73,13 @@ namespace MyDictionary
 
         public bool ContainsKey(T key)
         {
-            int index = key.GetHashCode() % capacity;
+            int index = key.GetHashCode() & 0x7fffffff % capacity;
             if (keys[index] != -1)
             {
-                for (int index1 = index; index1 >= 0; index = values[index].next)
+                for (int index1 = index; index1 >= 0; index1 = values[index1].next)
                 {
-                    if (keys[index] != -1)
-                    {
+                    if (values[index1].hashCode == index1 && Equals(values[index1].key, key))
                         return true;
-                    }
-                    //if (this.entries[index].hashCode == num && this.Comparer.Equals(this.entries[index].key, key))
-                    //    return true;
                 }
                 return true;
             }
@@ -98,13 +101,27 @@ namespace MyDictionary
 
         public bool Remove(T key)
         {
-            throw new NotImplementedException();
+            int index = key.GetHashCode() % capacity;
+            if (keys[index] != -1)
+            {
+                for (int index1 = index; index1 >= 0; index1 = values[index1].next)
+                {
+                    if (values[index].hashCode == index1 && Equals(values[index1].key, key))
+                    {
+                        values.RemoveAt(index1);
+                        return true;
+
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
-        public bool Remove(KeyValuePair<T, V> item)
-        {
-            throw new NotImplementedException();
-        }
+        public bool Remove(KeyValuePair<T, V> item) => Remove(item.Key);
 
         public bool TryGetValue(T key, [MaybeNullWhen(false)] out V value)
         {
